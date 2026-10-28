@@ -1,0 +1,89 @@
+
+.settings-v3{color:#edf3fa}
+.sv3-heading{margin-bottom:22px}
+.sv3-heading>span{
+ color:#86e8b3;font-size:12px;font-weight:700
+}
+.sv3-heading h2{font-size:27px;margin:7px 0}
+.sv3-heading p{color:#a3b3c8;margin:0}
+.sv3-panel{
+ background:#111b2a;
+ border:1px solid #2d3e53;
+ border-radius:15px;
+ padding:18px;
+ margin:16px 0;
+}
+.sv3-panel-title{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+}
+.sv3-panel h3{font-size:17px;margin:0 0 16px}
+.sv3-panel-title button{padding:9px 15px}
+.sv3-metrics{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;
+ margin:12px 0 20px;
+}
+.sv3-metric{
+ background:#0c1522;
+ border-radius:12px;
+ padding:16px;
+}
+.sv3-metric span{
+ display:block;color:#a3b3c8;font-size:13px
+}
+.sv3-metric strong{
+ display:block;font-size:28px;margin-top:8px
+}
+.sv3-metric small{
+ font-size:13px;color:#a3b3c8;font-weight:400
+}
+.sv3-goals{
+ border-top:1px solid #2d3e53;
+ padding-top:18px;
+}
+.sv3-goals>div{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ padding:12px 0;
+ font-size:14px;
+}
+.sv3-goals strong{color:#86e8b3}
+#sv3-form label{
+ display:block;
+ color:#a3b3c8;
+ margin:14px 0 7px;
+ font-size:14px;
+}
+#sv3-form input{
+ display:block;
+ width:100%;
+ box-sizing:border-box;
+ padding:13px;
+ background:#0c1522;
+ color:white;
+ border:1px solid #34465e;
+ border-radius:10px;
+ font-size:16px;
+}
+.sv3-actions,.sv3-backup{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;
+ margin-top:18px;
+}
+.sv3-actions button,.sv3-backup button{
+ padding:13px 8px;
+ border-radius:10px;
+}
+.sv3-error{color:#ff9e9e;font-size:13px}
+.sv3-note{font-size:12px;margin-top:16px}
+@media(max-width:390px){
+ .sv3-panel{padding:13px}
+ .sv3-metric strong{font-size:24px}
+ .sv3-goals>div{font-size:12px}
+}

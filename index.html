@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1019">
+<title>My Workout</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+:root{color-scheme:dark;--bg:#0b1019;--card:#172131;--line:#2b394d;--muted:#9eafc4;--green:#86e8b3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f7fafc;font-family:system-ui,-apple-system,sans-serif}
+main{max-width:620px;margin:auto;padding:24px 16px 110px}
+header{display:flex;justify-content:space-between;align-items:center}
+h1{font-size:27px;margin:4px 0}
+h2{font-size:19px;margin:0 0 14px}
+p{line-height:1.5}
+small,.muted{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:18px}
+button{border:0;border-radius:12px;padding:12px 15px;font-weight:700;background:var(--green);color:#102319;cursor:pointer}
+button.secondary{background:#29394e;color:white}
+button.danger{background:#583039;color:#ffd9df}
+button:disabled{opacity:.5}
+input,select{background:#101827;color:white;border:1px solid #46566c;border-radius:10px;padding:11px;min-width:0;width:100%;font:inherit}
+label{display:block;margin:10px 0 5px;font-size:13px;color:var(--muted)}
+.row{display:flex;align-items:center;gap:12px}
+.between{justify-content:space-between}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.progress{height:8px;background:#344459;border-radius:12px;overflow:hidden;margin-top:12px}
+#bar{height:100%;width:0;background:var(--green)}
+.exercise{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.exercise:last-child{border:0}
+.thumb{width:78px;height:78px;object-fit:cover;border-radius:13px;background:#29394e;flex-shrink:0}
+.placeholder{display:grid;place-items:center;font-size:28px}
+.exercise-info{flex:1;min-width:0}
+.exercise-info strong{display:block}
+.exercise-info small{display:block;margin-top:4px}
+.check{width:24px;height:24px;accent-color:var(--green)}
+.editor{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hidden{display:none!important}
+.history-item{padding:12px 0;border-bottom:1px solid var(--line)}
+dialog{background:var(--card);color:white;border:1px solid var(--line);border-radius:20px;width:min(94vw,480px);max-height:90vh;overflow:auto;padding:20px}
+dialog::backdrop{background:#000a}
+#preview{width:100%;max-height:200px;object-fit:contain;margin-top:12px;border-radius:12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#121b29;border-top:1px solid var(--line);display:flex;justify-content:center;gap:10px;padding:12px}
+nav button{background:#29394e;color:white}
+nav button.active{background:var(--green);color:#102319}
+
+.set-grid{
+ display:grid;
+ grid-template-columns:42px minmax(0,1fr) minmax(0,1fr) 52px;
+ align-items:center;
+ gap:8px;
+ margin:10px 0;
+}
+.set-heading{text-align:center}
+.set-grid strong{text-align:center}
+.set-grid input{padding:10px 6px;text-align:center}
+.set-check{display:flex;justify-content:center}
+.editor>button{margin-top:10px}
+
+
+.workout-card{
+ background:#172131;
+ border:1px solid #2b394d;
+ border-radius:16px;
+ padding:14px;
+ margin:12px 0;
+}
+.workout-head{
+ display:flex;
+ align-items:center;
+ gap:10px;
+}
+.workout-head .thumb{
+ width:60px;
+ height:60px;
+}
+.workout-head button{
+ padding:9px;
+ flex-shrink:0;
+}
+.workout-body{
+ border-top:1px solid #2b394d;
+ margin-top:14px;
+ padding-top:12px;
+}
+.workout-body[hidden]{display:none}
+.set-grid.timed-grid{
+ grid-template-columns:42px minmax(0,1fr) 52px;
+}
+.set-actions{
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px;
+ margin-top:12px;
+}
+.set-actions button:disabled{opacity:.35}
+.cardio-done{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ margin-top:16px;
+}
+.cardio-done input{width:24px}
+@media(max-width:390px){
+ .workout-head .thumb{width:48px;height:48px}
+ .workout-head{gap:7px}
+ .workout-head button{padding:7px}
+}
+
+
+.history-stats{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:10px;
+ margin-bottom:20px;
+}
+.history-stat{
+ background:#101827;
+ border:1px solid #2b394d;
+ border-radius:14px;
+ padding:16px 8px;
+ text-align:center;
+}
+.history-stat strong{
+ display:block;
+ font-size:25px;
+ color:#86e8b3;
+}
+.history-stat small{
+ display:block;
+ margin-top:5px;
+}
+.history-card{
+ background:#101827;
+ border:1px solid #2b394d;
+ border-radius:15px;
+ margin:12px 0;
+ overflow:hidden;
+}
+.history-header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ width:100%;
+ text-align:left;
+ background:transparent;
+ color:white;
+ padding:16px;
+}
+.history-header strong,
+.history-header small{
+ display:block;
+}
+.history-header small{
+ margin-top:5px;
+ color:#9eafc4;
+}
+.history-body{
+ padding:0 16px 16px;
+ border-top:1px solid #2b394d;
+}
+.history-body[hidden]{display:none}
+.history-exercise{
+ padding:13px 0;
+ border-bottom:1px solid #2b394d;
+}
+.history-exercise strong,
+.history-exercise small{
+ display:block;
+}
+.history-exercise small{
+ margin-top:7px;
+ color:#9eafc4;
+}
+.history-body>button{
+ margin-top:15px;
+ width:100%;
+}
+
+.settings-group {
+  background: #111b2a;
+  border: 1px solid #2d3e53;
+  border-radius: 14px;
+  padding: 18px;
+  margin: 18px 0;
+}
+
+.settings-group h3 {
+  margin: 0 0 18px;
+  font-size: 18px;
+  color: #edf3fa;
+}
+
+.settings-group label {
+  display: block;
+  margin: 14px 0 7px;
+  color: #a3b3c8;
+  font-size: 14px;
+}
+
+.settings-group input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px;
+  background: #0d1522;
+  border: 1px solid #34465e;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+}
+
+#saveProfile {
+  width: 100%;
+  background: #86e8b3;
+  color: #101827;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 10px;
+}
+
+#profileMessage {
+  min-height: 20px;
+  margin-top: 10px;
+}
+
+</style>
+<link rel="stylesheet" href="history-v3.css">
+<link rel="stylesheet" href="settings-v3.css">
+</head>
+<body>
+<main>
+<header>
+ <div><small>YOUR FITNESS JOURNEY</small><h1>My Workout 💪</h1></div>
+ <span style="color:var(--green)">● Offline Ready*</span>
+</header>
+<p class="muted">Train consistently. Get stronger.</p>
+
+<section id="home">
+ <div class="card">
+  <label for="date">วันที่ออกกำลังกาย</label>
+  <input type="date" id="date">
+  <div class="row between" style="margin-top:16px">
+   <div><small>TODAY'S PLAN</small><h1 id="planTitle"></h1></div>
+   <button id="addBtn">+ เพิ่มท่า</button>
+  </div>
+  <p id="progressText" class="muted"></p>
+  <div class="progress"><div id="bar"></div></div>
+ </div>
+ <div class="card">
+  <h2>Exercises</h2>
+  <div id="exerciseList"></div>
+ </div>
+</section>
+
+<section id="historyPage" class="hidden">
+ <div class="card"><h2>ประวัติการฝึก</h2><div id="history"></div></div>
+</section>
+
+
+<section id="settingsPage" class="hidden">
+  <div class="card">
+    <h2>⚙ Settings</h2>
+    <p class="muted">Manage your fitness profile</p>
+
+    <div class="settings-group">
+      <h3>👤 My Profile</h3>
+
+      <label for="profileWeight">น้ำหนัก (kg)</label>
+      <input id="profileWeight" type="number"
+             min="1" max="500" step="0.1">
+
+      <label for="profileHeight">ส่วนสูง (cm)</label>
+      <input id="profileHeight" type="number"
+             min="50" max="250" step="0.1">
+    </div>
+
+    <div class="settings-group">
+      <h3>🎯 Weekly Goals</h3>
+
+      <label for="strengthGoal">Weight Training (days/week)</label>
+      <input id="strengthGoal" type="number"
+             min="0" max="7">
+
+      <label for="runningGoal">Running (days/week)</label>
+      <input id="runningGoal" type="number"
+             min="0" max="7">
+    </div>
+
+    <button id="saveProfile" type="button">
+      Save Changes
+    </button>
+    <p id="profileMessage" class="muted" role="status"></p>
+
+    <div class="settings-group">
+      <h3>💾 Data & Backup</h3>
+      <p class="muted">
+        ข้อมูลการฝึกและรูปภาพเก็บไว้ในอุปกรณ์นี้
+      </p>
+      <div class="actions">
+        <button id="backup" type="button">สำรองข้อมูล</button>
+        <button id="restore" type="button" class="secondary">
+          กู้คืนข้อมูล
+        </button>
+      </div>
+      <input id="restoreFile" type="file"
+             accept="application/json,.json"
+             class="hidden">
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav>
+ <button data-tab="home" class="active">🏠 Home</button>
+ <button data-tab="historyPage">📅 History</button>
+ <button data-tab="settingsPage">⚙ Settings</button>
+</nav>
+
+<dialog id="editDialog">
+ <h2 id="dialogTitle">เพิ่มท่าออกกำลังกาย</h2>
+ <form id="exerciseForm">
+  <label>ชื่อท่า</label>
+  <input id="name" required maxlength="100" placeholder="เช่น Dumbbell Curl">
+  <label>วันในสัปดาห์</label>
+  <select id="weekday">
+   <option value="1">จันทร์</option>
+   <option value="2">อังคาร</option>
+   <option value="3">พุธ</option>
+   <option value="4">พฤหัสบดี</option>
+   <option value="5">ศุกร์</option>
+   <option value="6">เสาร์</option>
+   <option value="0">อาทิตย์</option>
+  </select>
+  <div class="two">
+   <div><label>จำนวนเซต</label><input id="sets" type="number" min="1" max="20" value="3" required></div>
+   <div><label>จำนวนครั้ง / ระยะ</label><input id="reps" maxlength="40" value="8–12" required></div>
+  </div>
+
+  <label>ประเภทการออกกำลังกาย</label>
+  <select id="exerciseType">
+   <option value="strength">Strength — น้ำหนักและจำนวนครั้ง</option>
+   <option value="cardio">Cardio — ระยะทางและเวลา</option>
+   <option value="timed">Timed — วินาทีต่อเซต</option>
+  </select>
+  <label>รูปภาพจากเครื่อง (ไม่เกิน 3 MB)</label>
+  <input id="photo" type="file" accept="image/png,image/jpeg,image/webp">
+  <img id="preview" class="hidden" alt="ภาพตัวอย่าง">
+  <div class="actions" style="margin-top:18px">
+   <button type="submit">บันทึก</button>
+   <button type="button" id="cancel" class="secondary">ยกเลิก</button>
+   <button type="button" id="delete" class="danger hidden">ลบท่า</button>
+  </div>
+ </form>
+</dialog>
+
+<script>
+const initial = {
+  0:[],
+  1:[["Squat",3,"8–10"],["Bench Press",3,"8–12"],["Seated Row",3,"10–12"],["Romanian Deadlift",2,"8–12"],["Plank",2,"30–45 sec"]],
+  2:[["Easy Run",1,"3–4 km"]],
+  3:[],
+  4:[["Lat Pulldown",3,"8–12"],["Shoulder Press",3,"8–12"],["Reverse Lunge",2,"8–10"],["Hip Thrust",3,"10–12"],["Biceps Curl",2,"10–15"]],
+  5:[["5K Run",1,"5 km"]],
+  6:[["Leg Press",3,"10–12"],["Incline Dumbbell Press",3,"8–12"],["One-arm Dumbbell Row",3,"10"],["Lateral Raise",2,"12–15"],["Triceps Pushdown",2,"10–15"]]
+};
+const titles=["Rest Day","Full Body A","Easy Run","Rest Day","Full Body B","5K Run","Full Body C"];
+const $=id=>document.getElementById(id);
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+const dayOf=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d).getDay()};
+const uid=()=>crypto.randomUUID();
+let db,exercises=[],records={},editing=null,photoData=null;
+
+function request(req){return new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+async function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open("my-workout-v2",1);
+  req.onupgradeneeded=()=>{
+   const d=req.result;
+   d.createObjectStore("exercises",{keyPath:"id"});
+   d.createObjectStore("records",{keyPath:"date"});
+  };
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error);
+ });
+}
+async function all(store){return request(db.transaction(store).objectStore(store).getAll())}
+async function put(store,value){return request(db.transaction(store,"readwrite").objectStore(store).put(value))}
+async function remove(store,key){return request(db.transaction(store,"readwrite").objectStore(store).delete(key))}
+function legacy(){
+ try{return JSON.parse(localStorage.getItem("my-workout-data-v1")||"{}")}catch{return {}}
+}
+async function init(){
+ db=await openDB();
+ exercises=await all("exercises");
+ if(!localStorage.getItem("my-workout-v2-seeded")){
+  if(!exercises.length){
+   for(const [day,items] of Object.entries(initial)){
+    for(const [name,sets,reps] of items){
+     const ex={id:uid(),day:Number(day),name,sets,reps,image:null};
+     await put("exercises",ex);
+    }
+   }
+  }
+  localStorage.setItem("my-workout-v2-seeded","yes");
+ }
+ exercises=await all("exercises");
+ const old=legacy();
+ const oldRecords=Object.keys(old);
+ if(oldRecords.length&&!localStorage.getItem("my-workout-v2-migrated")){
+  for(const date of oldRecords){
+   if(await request(db.transaction("records").objectStore("records").get(date)))continue;
+   const r={date,done:{},details:{}};
+   for(const ex of exercises){
+    if(old[date]?.done?.[ex.name])r.done[ex.id]=true;
+    if(old[date]?.details?.[ex.name])r.details[ex.id]=old[date].details[ex.name];
+   }
+   await put("records",r);
+  }
+  localStorage.setItem("my-workout-v2-migrated","yes");
+ }
+ records=Object.fromEntries((await all("records")).map(r=>[r.date,r]));
+ $("date").value=today();
+ render();
+}
+function plan(){return exercises.filter(e=>e.day===dayOf($("date").value))}
+function el(tag,cls,text){
+ const node=document.createElement(tag);
+ if(cls)node.className=cls;
+ if(text!==undefined)node.textContent=text;
+ return node;
+}
+
+function exerciseType(ex){
+ if(["strength","cardio","timed"].includes(ex.type))return ex.type;
+ const n=ex.name.toLowerCase();
+ if(n.includes("run")||n.includes("วิ่ง"))return "cardio";
+ if(n.includes("plank")||n.includes("แพลงก์"))return "timed";
+ return "strength";
+}
+
+function isComplete(ex,r){
+ const sets=r.details?.[ex.id]?.sets;
+ if(exerciseType(ex)==="cardio")return !!r.done?.[ex.id];
+ if(Array.isArray(sets))
+  return sets.length>0&&sets.every(s=>!!s.done);
+ return !!r.done?.[ex.id];
+}
+
+const expanded=new Set();
+
+function render(){
+ const date=$("date").value;
+ const list=plan();
+ const r=records[date]||{date,done:{},details:{}};
+ r.done||={};
+ r.details||={};
+ const root=$("exerciseList");
+ root.replaceChildren();
+ $("planTitle").textContent=titles[dayOf(date)];
+
+ function progress(){
+  const count=list.filter(ex=>isComplete(ex,r)).length;
+  $("progressText").textContent=`${count} / ${list.length} exercises completed`;
+  $("bar").style.width=list.length?`${count/list.length*100}%`:"0%";
+ }
+
+ async function save(){
+  records[date]=r;
+  await put("records",r);
+  progress();
+  renderHistory();
+ }
+
+ progress();
+ if(!list.length)root.append(el("p","muted","วันนี้พักฟื้น"));
+
+ for(const ex of list){
+  const type=exerciseType(ex);
+  const detail=r.details[ex.id]||{};
+  const card=el("article","workout-card");
+  const head=el("div","workout-head");
+  const image=ex.image?el("img","thumb"):el("div","thumb placeholder",
+    type==="cardio"?"🏃":type==="timed"?"⏱️":"🏋️");
+  if(ex.image){image.src=ex.image;image.alt=ex.name}
+
+  const info=el("div","exercise-info");
+  const title=el("strong","",ex.name);
+  const status=el("small","status");
+  info.append(title,status);
+
+  const edit=el("button","secondary","แก้ไข");
+  edit.onclick=()=>openEditor(ex);
+  const toggle=el("button","secondary","⌄");
+  toggle.type="button";
+  toggle.setAttribute("aria-label","เปิดหรือปิดรายละเอียด");
+  const body=el("div","workout-body");
+  const key=date+":"+ex.id;
+
+  function updateStatus(){
+   if(type==="cardio"){
+    status.textContent=isComplete(ex,r)?"✓ Completed":"Cardio";
+   }else{
+    const sets=r.details[ex.id]?.sets;
+    status.textContent=Array.isArray(sets)
+     ?`${sets.filter(s=>s.done).length}/${sets.length} sets completed`
+     :isComplete(ex,r)?"✓ Previously completed":`${ex.sets} sets`;
+   }
+   status.style.color=isComplete(ex,r)?"#86e8b3":"#9eafc4";
+  }
+
+  function expand(){
+   body.hidden=!expanded.has(key);
+   toggle.textContent=body.hidden?"⌄":"⌃";
+  }
+  toggle.onclick=()=>{
+   if(expanded.has(key))expanded.delete(key);
+   else expanded.add(key);
+   expand();
+  };
+  head.append(image,info,edit,toggle);
+  card.append(head,body);
+  root.append(card);
+
+  if(type==="cardio"){
+   const fields=el("div","two");
+   for(const [field,label] of [
+    ["distance","ระยะทาง (กม.)"],
+    ["minutes","เวลา (นาที)"]
+   ]){
+    const wrap=el("div");
+    const input=el("input");
+    input.type="number";
+    input.min="0";
+    input.step="0.01";
+    input.value=detail[field]??"";
+    input.onchange=async()=>{
+     r.details[ex.id]||={};
+     r.details[ex.id][field]=input.value;
+     await save();
+    };
+    wrap.append(el("label","",label),input);
+    fields.append(wrap);
+   }
+   const label=el("label","cardio-done");
+   const check=el("input","check");
+   check.type="checkbox";
+   check.checked=!!r.done[ex.id];
+   check.onchange=async()=>{
+    r.done[ex.id]=check.checked;
+    await save();
+    updateStatus();
+   };
+   label.append(check,el("span","","วิ่งเสร็จแล้ว"));
+   body.append(fields,label);
+  }else{
+   let sets=Array.isArray(detail.sets)
+    ?detail.sets.map(s=>({...s}))
+    :Array.from({length:Math.max(1,Number(ex.sets)||1)},(_,i)=>({
+      weight:i===0?(detail.weight??""):"",
+      reps:i===0?(detail.reps??""):"",
+      seconds:"",
+      done:!!r.done[ex.id]
+    }));
+
+   if(!sets.length)sets=[{weight:"",reps:"",seconds:"",done:false}];
+
+   const table=el("div");
+   const actions=el("div","set-actions");
+   const add=el("button","secondary","+ Add Set");
+   const remove=el("button","secondary","− Remove Last");
+   add.type=remove.type="button";
+
+   async function persist(){
+    r.details[ex.id]||={};
+    r.details[ex.id].sets=sets;
+    r.done[ex.id]=sets.length>0&&sets.every(s=>s.done);
+    await save();
+    updateStatus();
+   }
+
+   function draw(){
+    table.replaceChildren();
+    const timed=type==="timed";
+    const headings=timed?["SET","SECONDS","DONE"]:["SET","KG","REPS","DONE"];
+    const heading=el("div",timed?"set-grid timed-grid":"set-grid");
+    headings.forEach(h=>heading.append(el("small","",h)));
+    table.append(heading);
+
+    sets.forEach((s,i)=>{
+     const row=el("div",timed?"set-grid timed-grid":"set-grid");
+     row.append(el("strong","",String(i+1)));
+
+     for(const field of timed?["seconds"]:["weight","reps"]){
+      const input=el("input");
+      input.type="number";
+      input.min="0";
+      input.step=field==="weight"?"0.5":"1";
+      input.value=field==="seconds"
+       ?(s.seconds??s.reps??""):(s[field]??"");
+      input.setAttribute("aria-label",`${field} set ${i+1}`);
+      input.onchange=async()=>{
+       s[field]=input.value;
+       await persist();
+      };
+      row.append(input);
+     }
+
+     const wrap=el("div","set-check");
+     const check=el("input","check");
+     check.type="checkbox";
+     check.checked=!!s.done;
+     check.onchange=async()=>{
+      s.done=check.checked;
+      await persist();
+     };
+     wrap.append(check);
+     row.append(wrap);
+     table.append(row);
+    });
+    remove.disabled=sets.length<=1;
+   }
+
+   add.onclick=async()=>{
+    sets.push({weight:"",reps:"",seconds:"",done:false});
+    await persist();
+    draw();
+   };
+   remove.onclick=async()=>{
+    if(sets.length<=1)return;
+    const last=sets[sets.length-1];
+    if((last.done||last.weight||last.reps||last.seconds)
+       &&!confirm("ลบเซตสุดท้ายพร้อมข้อมูล?"))return;
+    sets.pop();
+    await persist();
+    draw();
+   };
+
+   actions.append(add,remove);
+   body.append(table,actions);
+   draw();
+  }
+
+  updateStatus();
+  expand();
+ }
+ renderHistory();
+}
+
+function renderHistoryV2(){
+ const root=$("history");
+ root.replaceChildren();
+
+ const sessions=Object.values(records)
+  .filter(r=>{
+   const hasDone=Object.values(r.done||{}).some(Boolean);
+   const hasDetails=Object.values(r.details||{}).some(d=>
+    d&&(
+     (Array.isArray(d.sets)&&d.sets.some(s=>
+      s.done||s.weight||s.reps||s.seconds
+     ))||d.distance||d.minutes||d.weight||d.reps
+    )
+   );
+   return hasDone||hasDetails;
+  })
+  .sort((a,b)=>b.date.localeCompare(a.date));
+
+ const strength=sessions.filter(r=>
+  Object.keys(r.details||{}).some(id=>{
+   const ex=exercises.find(e=>e.id===id);
+   return ex&&exerciseType(ex)!=="cardio";
+  })
+ ).length;
+
+ const running=sessions.filter(r=>
+  Object.keys(r.details||{}).some(id=>{
+   const ex=exercises.find(e=>e.id===id);
+   return ex&&exerciseType(ex)==="cardio";
+  })
+ ).length;
+
+ const stats=el("div","history-stats");
+ for(const [value,label] of [
+  [sessions.length,"Sessions"],
+  [strength,"Strength"],
+  [running,"Cardio"]
+ ]){
+  const card=el("div","history-stat");
+  card.append(el("strong","",String(value)),el("small","",label));
+  stats.append(card);
+ }
+ root.append(stats);
+
+ if(!sessions.length){
+  root.append(el("p","muted","ยังไม่มีประวัติการฝึก"));
+  return;
+ }
+
+ for(const session of sessions){
+  const card=el("article","history-card");
+  const header=el("button","history-header");
+  header.type="button";
+
+  const date=session.date;
+  const day=dayOf(date);
+  const title=el("strong","",titles[day]);
+  const dateText=el("small","",date);
+
+  const left=el("div");
+  left.append(title,dateText);
+
+  const arrow=el("span","","⌄");
+  header.append(left,arrow);
+
+  const body=el("div","history-body");
+  body.hidden=true;
+
+  header.onclick=()=>{
+   body.hidden=!body.hidden;
+   arrow.textContent=body.hidden?"⌄":"⌃";
+  };
+
+  let hasItems=false;
+
+  const ids=new Set([
+   ...Object.keys(session.done||{}),
+   ...Object.keys(session.details||{})
+  ]);
+
+  for(const id of ids){
+   const ex=exercises.find(e=>e.id===id);
+   const detail=session.details?.[id]||{};
+   const name=ex?.name||"ท่าที่ลบไปแล้ว";
+   const type=ex?exerciseType(ex):
+    Array.isArray(detail.sets)?"strength":
+    ("distance" in detail||"minutes" in detail)?"cardio":"strength";
+
+   const item=el("div","history-exercise");
+   item.append(el("strong","",name));
+   hasItems=true;
+
+   if(type==="cardio"){
+    const distance=detail.distance||"—";
+    const minutes=detail.minutes||"—";
+    item.append(el("small","",
+     `${distance} km · ${minutes} min · ${
+      session.done?.[id]?"Completed":"Not completed"
+     }`));
+   }else if(Array.isArray(detail.sets)){
+    detail.sets.forEach((s,i)=>{
+     let description;
+     if(type==="timed"){
+      description=`Set ${i+1}: ${s.seconds??s.reps??"—"} sec`;
+     }else{
+      description=`Set ${i+1}: ${s.weight||"—"} kg × ${s.reps||"—"} reps`;
+     }
+     item.append(el("small","",
+      `${s.done?"✓":"○"} ${description}`));
+    });
+   }else{
+    item.append(el("small","",
+     session.done?.[id]?"✓ Completed (legacy record)":
+     `${detail.weight||"—"} kg × ${detail.reps||"—"} reps`));
+   }
+
+   body.append(item);
+  }
+
+  if(!hasItems)
+   body.append(el("p","muted","ไม่มีรายละเอียดการฝึก"));
+
+  const edit=el("button","secondary","ดู / แก้ไขวันนี้");
+  edit.type="button";
+  edit.onclick=()=>{
+   $("date").value=date;
+   showTab("home");
+   render();
+   window.scrollTo({top:0,behavior:"smooth"});
+  };
+  body.append(edit);
+
+  card.append(header,body);
+  root.append(card);
+ }
+}
+function renderHistory(){
+ HistoryV3.render();
+}
+function showTab(id){
+ for(const section of ["home","historyPage","settingsPage"])$(section).classList.toggle("hidden",section!==id);
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+$("date").onchange=render;
+$("addBtn").onclick=()=>openEditor(null);
+$("cancel").onclick=()=>$("editDialog").close();
+function openEditor(ex){
+ editing=ex;photoData=ex?.image||null;
+ $("exerciseForm").reset();
+ $("dialogTitle").textContent=ex?"แก้ไขท่า":"เพิ่มท่าออกกำลังกาย";
+ $("name").value=ex?.name||"";
+ $("weekday").value=String(ex?.day??dayOf($("date").value));
+ $("sets").value=ex?.sets||3;
+ $("exerciseType").value=ex?exerciseType(ex):"strength";
+ $("reps").value=ex?.reps||"8–12";
+ $("delete").classList.toggle("hidden",!ex);
+ $("preview").classList.toggle("hidden",!photoData);
+ if(photoData)$("preview").src=photoData;
+ $("editDialog").showModal();
+}
+$("photo").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>3*1024*1024){
+  alert("กรุณาเลือกรูป JPG, PNG หรือ WebP ไม่เกิน 3 MB");e.target.value="";return;
+ }
+ photoData=await new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(reader.result);
+  reader.onerror=()=>reject(reader.error);
+  reader.readAsDataURL(file);
+ });
+ $("preview").src=photoData;$("preview").classList.remove("hidden");
+};
+$("exerciseForm").onsubmit=async e=>{
+ e.preventDefault();
+ const ex={
+  id:editing?.id||uid(),
+  name:$("name").value.trim(),
+  day:Number($("weekday").value),
+  sets:Number($("sets").value),
+  reps:$("reps").value.trim(),
+  type:$("exerciseType").value,
+  image:photoData
+ };
+ if(!ex.name||!ex.reps)return;
+ try{
+  await put("exercises",ex);
+  exercises=await all("exercises");
+  $("editDialog").close();render();
+ }catch(err){alert("บันทึกไม่สำเร็จ อาจมีพื้นที่เก็บข้อมูลไม่เพียงพอ")}
+};
+$("delete").onclick=async()=>{
+ if(!editing||!confirm(`ลบท่า ${editing.name} ออกจากตาราง? ประวัติเดิมจะยังอยู่`))return;
+ await remove("exercises",editing.id);
+ exercises=await all("exercises");
+ $("editDialog").close();render();
+};
+$("backup").onclick=()=>{
+ const data={version:2,exercises,records:Object.values(records)};
+ const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;a.download=`my-workout-${today()}.json`;a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),3000);
+};
+$("restore").onclick=()=>$("restoreFile").click();
+$("restoreFile").onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  if(data.version!==2||!Array.isArray(data.exercises)||!Array.isArray(data.records))throw Error("Invalid backup");
+  if(!confirm("แทนที่ข้อมูลปัจจุบันทั้งหมดด้วยข้อมูลสำรอง?"))return;
+  for(const store of ["exercises","records"]){
+   await request(db.transaction(store,"readwrite").objectStore(store).clear());
+  }
+  for(const ex of data.exercises)await put("exercises",ex);
+  for(const r of data.records)await put("records",r);
+  exercises=await all("exercises");
+  records=Object.fromEntries((await all("records")).map(r=>[r.date,r]));
+  render();alert("กู้คืนสำเร็จ");
+ }catch(err){alert("ไม่สามารถกู้คืนไฟล์นี้ได้")}
+ e.target.value="";
+};
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden&&$("date").value!==today()){
+  $("date").value=today();render();
+ }
+});
+
+const PROFILE_KEY = "my-workout-profile-v1";
+
+const defaultProfile = {
+  weight: 70,
+  height: 178,
+  strengthGoal: 3,
+  runningGoal: 2
+};
+
+function loadProfile() {
+  let saved = {};
+  try {
+    saved = JSON.parse(
+      localStorage.getItem(PROFILE_KEY) || "{}"
+    );
+  } catch (err) {
+    console.warn("Cannot read profile", err);
+  }
+
+  const profile = { ...defaultProfile, ...saved };
+
+  $("profileWeight").value = profile.weight;
+  $("profileHeight").value = profile.height;
+  $("strengthGoal").value = profile.strengthGoal;
+  $("runningGoal").value = profile.runningGoal;
+}
+
+$("saveProfile").onclick = () => {
+  const weight = Number($("profileWeight").value);
+  const height = Number($("profileHeight").value);
+  const strengthGoal = Number($("strengthGoal").value);
+  const runningGoal = Number($("runningGoal").value);
+
+  if (
+    !Number.isFinite(weight) || weight <= 0 || weight > 500 ||
+    !Number.isFinite(height) || height < 50 || height > 250 ||
+    !Number.isInteger(strengthGoal) ||
+    !Number.isInteger(runningGoal) ||
+    strengthGoal < 0 || runningGoal < 0 ||
+    strengthGoal + runningGoal > 7
+  ) {
+    $("profileMessage").textContent =
+      "กรุณาตรวจสอบข้อมูลและจำนวนวันฝึก (รวมไม่เกิน 7 วัน)";
+    return;
+  }
+
+  const profile = {
+    weight,
+    height,
+    strengthGoal,
+    runningGoal
+  };
+
+  try {
+    localStorage.setItem(
+      PROFILE_KEY,
+      JSON.stringify(profile)
+    );
+    $("profileMessage").textContent =
+      "✓ บันทึกข้อมูลเรียบร้อยแล้ว";
+  } catch (err) {
+    $("profileMessage").textContent =
+      "ไม่สามารถบันทึกข้อมูลได้";
+  }
+};
+
+loadProfile();
+
+init().catch(err=>{console.error(err);alert("เปิดฐานข้อมูลไม่ได้ กรุณาใช้เว็บไซต์ผ่าน HTTPS หรือ localhost")});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+</script>
+<script src="history-v3.js"></script>
+<script src="settings-v3.js"></script>
+</body>
+</html>
